@@ -8,6 +8,16 @@
     // Set authorized scope.
     var scopes = 'profile https://www.googleapis.com/auth/analytics.readonly';
 
+
+    var accountId, webPropertyId, profileId;
+    var RESULT_NA = 'N/A';
+    var auditTable =
+        [{'id':'A01', 'result':RESULT_NA, 'cell':'E2:E2', 'dimension':'ga:userGender', 'metric':'ga:sessions'},
+            {'id':'B01', 'result':RESULT_NA, 'cell':'E4:E4', 'dimension':'ga:pagePath', 'metric':'ga:sessions'},
+            {'id':'C01', 'result':RESULT_NA, 'cell':'E9:E9'}
+        ];
+
+
     // Get authorization from the user to access profile info
     function initAuth() {
         gapi.client.setApiKey(apiKey);
@@ -119,8 +129,10 @@
                 addOptions(viewOptions, profiles[i].name, profiles[i].id);
             }
 
-            // Query the Core Reporting API.
-            // queryCoreReportingApi(firstProfileId);
+            viewOptions.addEventListener("change", function() {
+                //getAccountInfo();
+                doAudit();
+            });
 
         } else {
             console.log('No views (profiles) found for this user.');
@@ -140,7 +152,7 @@
             .then(function (response) {
                 var formattedJson = JSON.stringify(response.result, null, 2);
                 document.getElementById('query-output').value = formattedJson;
-                console.log('[ Auth result ] '+ '\n' + formattedJson);
+                console.log(formattedJson);
             })
             .then(null, function (err) {
                 // Log any errors.
@@ -153,6 +165,137 @@
         options.appendChild(document.createTextNode(optionName + ' ('+optionVal+')'));
         options.setAttribute("value", optionVal);
         selectBox.appendChild(options);
+    }
+
+    // added 09/24/2016
+
+    function getAccountInfo() {
+        accountId = document.getElementById('acc').value;
+        webPropertyId = document.getElementById('prop').value;
+        profileId = document.getElementById('view').value;
+
+        console.log('Selected Ids : '
+            + '\n' + 'accountId : ' + accountId
+            + '\n' + 'propertyId : ' + webPropertyId
+            + '\n' + 'viewId : '+ profileId);
+    }
+
+
+    function doAudit() {
+        // Get GA information
+        getAccountInfo();
+
+
+        for (var i = 0; i < auditTable.length; i++) {
+            var id;
+            var dimension = auditTable[i].dimension;
+            if (typeof(dimension) === 'undefined') {
+                console.log('dimension is undefined');
+                id = auditTable[i].id;
+                auditTable[i].result = runAudit_M(id);
+            } else {
+                id = profileId;
+                var metric = auditTable[i].metric;
+                //var filter = auditTable[i].filter;
+                //auditTable[i].result = runAudit_R(id, dimension, metric, filter);
+            }
+        }
+        //reportResult();
+    }
+
+    function runAudit_M(id) {
+        // Audit using Google management API
+        var result;
+        switch (id) {
+            case 'C01':
+                result = runC01();
+                break;
+            default:
+                console.log('not C01');
+                break;
+        }
+        return result;
+    }
+
+    function runAudit_R(id, dimension, metric) { //, filter) {
+        // Audit using Google Reporting API
+        console.log('id: ' + id + ', dimension : ' + dimension + ', metric : ' + metric); // + ', filter : ' + filter);
+        var result;
+
+
+        // Make a request to the API
+        // https://developers.google.com/analytics/devguides/reporting/core/v4/rest/v4/reports/batchGet
+        // https://developers.google.com/analytics/devguides/reporting/core/v4/samples
+
+        gapi.client.request({
+            'path': '/v4/reports:batchGet',
+            'root': 'https://analyticsreporting.googleapis.com/',
+            'method': 'POST',
+            'body': {
+                //})
+                //api.client.analyticsreporting.reports.batchGet({
+                'reportRequests': [
+                    {
+                        'viewId': profileId,
+                        'dateRanges': [{
+                            'startDate': '7daysAgo',
+                            'endDate': 'yesterday'
+                        }],
+                        'metrics': [{
+                            'expression': metric
+                        }],
+                        'dimensions': [{
+                            'name': dimension
+                        }]
+                    }]
+                //}).execute(handleReportingResults);
+            }
+        }).then(handleReportingResults)
+        // }).then(function (response) {
+        //     var formattedJson = JSON.stringify(response.result, null, 2);
+        //     document.getElementById('query-output').value = formattedJson;
+        //     console.log(formattedJson);
+        // })
+
+        console.log('runAudit_R result : ' + result);
+    }
+
+    function runC01() {
+        console.log('account & propert Id : ' + accountId + ', ' + webPropertyId);
+
+        // Get a list of all adWords link for the users
+        gapi.client.analytics.management.webPropertyAdWordsLinks.list({
+            'accountId': accountId,
+            'webPropertyId': webPropertyId
+        }).then(handleAdwordslists);
+    }
+
+    function handleAdwordslists(response) {
+        var result;
+
+        if (response && !response.error) {
+            var info = response.result;
+            var count = info.totalResults;
+
+            for (var i = 0; i < count; i++) {
+                var formattedJson = JSON.stringify(info.items[i], null, 2);
+                document.getElementById('C01').value = formattedJson;
+            }
+        }
+    }
+
+    function handleReportingResults(response){
+        console.log(response);
+    }
+
+    function reportResult() {
+        var result;
+        for (var i = 0; i < auditTable.length; i++) {
+            var id = auditTable[i].id;
+            result = auditTable[i].result;
+            console.log('ID : ' + id + ', Audit Result : ' + result);
+        }
+
     }
 
     gapi.load('client:auth2', initAuth);
