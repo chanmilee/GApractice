@@ -34,9 +34,6 @@
     }
 
     function handleAccounts(response) {
-        // var formattedJson = JSON.stringify(response.result, null, 2);
-        // console.log(formattedJson);
-
         // Handles the response from the accounts list method.
         if (response.result.items && response.result.items.length) {
             // Get the first Google Analytics account.
@@ -67,9 +64,6 @@
     }
 
     function handleProperties(response) {
-        // var formattedJson = JSON.stringify(response.result, null, 2);
-        // console.log(formattedJson);
-
         // Handles the response from the webproperties list method.
         if (response.result.items && response.result.items.length) {
             var items = response.result.items;
@@ -85,7 +79,6 @@
 
             // Change option values based on the selected value.
             propOptions.addEventListener("change", function() {
-                console.log('Selected Property ID : ' + propOptions.value);
                 queryProfiles(firstAccountId, propOptions.value);
             }, false)
 
