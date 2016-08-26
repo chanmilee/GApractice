@@ -320,8 +320,6 @@
     }
 
     function runAdwordsCheck() {
-        // console.log('[C01] account & propert Id : ' + accountId + ', ' + webPropertyId);
-
         // Get a list of all AdWordsLink for the users
         gapi.client.analytics.management.webPropertyAdWordsLinks.list({
             'accountId': accountId,
@@ -370,7 +368,6 @@
     }
 
     function runF01() {
-        //console.log('[F01] account & propert Id : ' + accountId + ', ' + webPropertyId);
         var result;
 
         gapi.client.analytics.management.profiles.list({
@@ -412,15 +409,13 @@
 
             // Show the headers
             for (var i = 0; i < reports.length; i++) {
-                // var headerNames = [];
-                // headerNames.push(reports[i].columnHeader);
-                //
-                // var data = [];
-                // data.push(reports[i].data);
-                //
-                // var nextPageToken = reports[i].nextPageToken;
-                //
-                // console.log(headerNames)
+                var headerNames = [];
+                headerNames.push(reports[i].columnHeader);
+                var data = [];
+                data.push(reports[i].data);
+                var nextPageToken = reports[i].nextPageToken;
+
+                // keep going
             }
         } else {
             result = 'Failed';
