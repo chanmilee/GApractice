@@ -16,6 +16,10 @@ body {
   transition:border-color .2s cubic-bezier(.4,0,.2,1);
 }
 
-label {
-  font-size: large;
+/*label {*/
+  /*font-size: large;*/
+/*}*/
+
+.ga-checklist p{
+  font-size: medium;
 }
