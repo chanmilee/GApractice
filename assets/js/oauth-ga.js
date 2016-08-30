@@ -15,6 +15,8 @@
             {'id':'B01', 'items': 'Pageview tracking', 'result':RESULT_NA, 'dimension':'ga:pagePath', 'metric':'ga:sessions'},
             {'id':'B02', 'items': 'Event tracking', 'result':RESULT_NA, 'dimension':'ga:eventCategory', 'metric':'ga:sessions'},
             {'id':'B03', 'items': 'Set up Site Search', 'result':RESULT_NA, 'dimension':'ga:searchKeyword', 'metric':'ga:sessions'},
+            // {'id':'B04', 'items': 'Implement Custom Dimension', 'result':RESULT_NA, 'dimension': '', 'metric': ''},
+            // {'id':'B05', 'items': 'Implement Custom Metrics', 'result':RESULT_NA, 'dimension': '', 'metric': ''},
             {'id':'C01', 'items': 'Link AdWords Account', 'result':RESULT_NA},
             {'id':'C02', 'items': 'AdWords Auto-tagging', 'result':RESULT_NA},
             {'id':'C03', 'items': 'Custom Campaign Parameter', 'result':RESULT_NA, 'dimension':'ga:campaign','metric':'ga:sessions', 'filter':'ga:adwordsCampaignID!~.*'},
@@ -57,6 +59,7 @@
             // Get account selection
             var accOptions = document.getElementById('acc');
 
+            accOptions.innerHTML = '\<option disabled selected\>Please pick one\</option\>';
             // Get Google Analytics accounts
             for (var i = 0; i < response.result.totalResults; i++) {
                 var accId = response.result.items[i].id;
@@ -98,9 +101,9 @@
 
             // Get property selection
             var propOptions = document.getElementById('prop');
+            clearOptions(propOptions);
 
-            propOptions.innerHTML = '';
-
+            propOptions.innerHTML = '\<option disabled selected\>Please pick one\</option\>';
             // Add properties
             for (j = 0; j < response.result.totalResults; j++) {
                 addOptions(propOptions, items[j].name, items[j].id);
@@ -108,7 +111,7 @@
 
             // Change option values based on the selected value.
             propOptions.addEventListener("change", function() {
-                // console.log('account Id' + firstAccountId + ', property Id : '+ propOptions.value);
+                console.log('ACCOUNT : ' + firstAccountId + ', PROPERTY : ' + propOptions.value);
                 // need to fix (09/25)
                 // clear property & view options when choosing other account
 
@@ -143,8 +146,8 @@
             var profiles = response.result.items;
             var viewOptions = document.getElementById('view');
 
-            // clear all view info before adding view(s) based on the selected property value.
-            viewOptions.innerHTML = '';
+            clearOptions(viewOptions);
+            viewOptions.innerHTML = '\<option disabled selected\>Please pick one\</option\>';
 
             // Change options based on the selected value.
             for (i = 0; i < profiles.length; i++) {
@@ -152,8 +155,6 @@
             }
 
             viewOptions.addEventListener("change", function() {
-                //getAccountInfo();
-                //doAudit();
                 initAudit();
             });
 
@@ -191,7 +192,7 @@
     }
 
     function clearOptions (childBox) {
-        console.log('called clearOption function');
+        childBox.innerHTML = '';
     }
 
     // added 09/24/2016
@@ -213,8 +214,9 @@
     }
 
     function buildAuditTable() {
-        console.log('start to build auditTable');
+        // console.log('start to build auditTable');
         var auditDiv = document.getElementById('ga-checklist');
+        auditDiv.innerHTML = '';
 
         // Create a div element
         for (var i = 0; i < auditTable.length; i++) {
@@ -225,7 +227,7 @@
                 + '\<p\> Item : ' + auditTable[i].items;
 
             var text = document.createElement('textarea');
-                text.cols = "50";
+                text.cols = "80";
                 text.rows = "10";
                 text.id = auditTable[i].id;
 
@@ -316,6 +318,8 @@
             }
         }, function (error) {
             console.log(error);
+
+            // if user doesn't have permission
         });
     }
 
@@ -341,7 +345,8 @@
             for (var i = 0; i < count; i++) {
                 var formattedJson = JSON.stringify(info.items[i], null, 2);
                 document.getElementById('C01').value = formattedJson;
-            }
+            }// what if there is no AdwordsLink conntected to GA?
+
 
             // [C02] Check each adWords account whether it is auto-tagged or not
             for (var i = 0; i < count; i++) {
